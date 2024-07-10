@@ -1,0 +1,21 @@
+# https://github.com/github/gitignore/blob/main/Terraform.gitignore
+
+# Local .terraform directories
+.terrafom*
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Ignore transient lock info files created by terraform apply
+.terraform.tfstate.lock.info
+
+# Crash log files
+crash.log
+crash.*.log
+
+# application code
+**/node_modules/*
+package-lock.json
+.env
