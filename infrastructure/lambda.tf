@@ -24,17 +24,40 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
   name         = "aws_iam_policy_for_terraform_aws_lambda_role"
   path         = "/"  # Path in which to create the policy
   description  = "AWS IAM Policy for managing AWS lambda role"
+
+  # Define the content of the policy document.
+  # https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSLambdaBasicExecutionRole.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-eventsource
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
       {
+        "Sid": "AllowLambdaLogs",
+        "Effect": "Allow",
         "Action": [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        "Resource": "arn:aws:logs:*:*:*",
-        "Effect": "Allow"
+        "Resource": "arn:aws:logs:*:*:*"
+      },
+      {
+        "Sid": "AllowSQSQueueExecution",
+        "Effect": "Allow",
+        "Action": [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ],
+        "Resource": "${aws_sqs_queue.queue.arn}"
+      },
+      {
+        "Sid": "AllowPublishMessagesToSNSTopic",
+        "Effect": "Allow",
+        "Action": [
+          "sns:Publish"
+        ],
+        "Resource": "${aws_sns_topic.user_updates.arn}"
       }
     ]
   })
@@ -49,20 +72,26 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
 # CloudWatch Log Group resource -> when Terraform manages the log group, it is destroyed with 'terraform destroy'.
 # https://advancedweb.hu/how-to-manage-lambda-log-groups-with-terraform/
 resource "aws_cloudwatch_log_group" "lambda_loggroup" {
-  name              = "/aws/lambda/${aws_lambda_function.terraform_lambda_func.function_name}"
+  name              = "/aws/lambda/${aws_lambda_function.sqs_processor.function_name}"
   retention_in_days = 14 # expiration to the log messages.
 }
 
 # Create a lambda function
-resource "aws_lambda_function" "terraform_lambda_func" {
-  function_name  = "Terraform-Lambda-Function"
-  handler        = "hello.handler" # function entrypoint
+resource "aws_lambda_function" "sqs_processor" {
+  function_name  = "process-queue-message"
+  handler        = "index.handler" # function entrypoint
   runtime        = "nodejs20.x"
   role           = aws_iam_role.lambda_role.arn
   filename       = "${path.module}/dummy.zip" # point to the temporary placeholder file
 
-  # environment {   # Environment variables
-  #   variables = {
-  #   }
-  # }
+  memory_size    = 512 # Amount of memory in MB your Lambda Function can use at runtime.
+  timeout        = 10  # Amount of time your Lambda Function has to run in seconds.
+
+  # Map of environment variables that are accessible from the function code during execution.
+  environment {
+    variables = {
+      REGION    = "${var.aws_region}",
+      SNS_TOPIC_ARN = "${aws_sns_topic.user_updates.arn}"
+    }
+  }
 }
