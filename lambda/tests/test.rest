@@ -1,0 +1,8 @@
+@url = https://yelpkvzasa.execute-api.us-east-1.amazonaws.com/dev
+###
+POST {{url}}/
+Content-Type: application/json
+
+{
+    "message": "Hello !!"
+}

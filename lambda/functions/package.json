@@ -1,0 +1,13 @@
+{
+  "name": "process-queue-message",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "Nir Gluzman",
+  "license": "ISC",
+  "description": "process queue message and publish to SNS topic"
+}
