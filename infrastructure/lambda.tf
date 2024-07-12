@@ -74,6 +74,7 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
 resource "aws_cloudwatch_log_group" "lambda_loggroup" {
   name              = "/aws/lambda/${aws_lambda_function.sqs_processor.function_name}"
   retention_in_days = 14 # expiration to the log messages.
+  skip_destroy      = false
 }
 
 # Create a lambda function
