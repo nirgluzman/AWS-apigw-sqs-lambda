@@ -2,7 +2,7 @@
 
 ## GitHub repo
 
-- <https://github.com/nirgluzman/AWS-apigw-sqs-lambda.git>
+- <https://github.com/nirgluzman/Terraform-ApiGW-SQS-Lambda.git>
 
 ## Resources
 
